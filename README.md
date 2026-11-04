@@ -151,7 +151,6 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t p) { (void)p; return HAL_OK; }
 | 文件 | 内容 |
 |---|---|
 | `main.c` | 单文件完整实现：时钟、GPIO/EXTI、1 ms 帧、状态机、呼吸、多击、方波、main |
-| `docs/答辩要点.md` | 一页纸答辩：代码地图、关键数字、12 个问答、演示顺序 |
 
 ---
 
@@ -162,10 +161,9 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t p) { (void)p; return HAL_OK; }
 3. **不需要在 CubeMX 里配置 GPIO / EXTI / NVIC**——`main.c` 里的 `gpio_init()` 会全部配置。
 4. 生成工程（MDK-ARM 或 STM32CubeIDE）。
 5. 用本仓库的 `main.c` **整体替换** `Core/Src/main.c`。
-6. 如果工程里有 `app.c` / `app.h`，从工程移除（本实现不需要）。
-7. 如果 `stm32f4xx_it.c` 里已经有 `EXTI0/2/3/4_IRQHandler`，把 `main.c` 末尾那四个删掉，避免重复定义；默认空工程不会有。
-8. 如果 CubeMX 生成了 `stm32f4xx_hal_timebase_tim.c`（Timebase Source 选成 TIM 时才有），从工程移除，避免 `HAL_InitTick` 重定义。
-9. Rebuild → Download → 按复位。
+6. 如果 `stm32f4xx_it.c` 里已经有 `EXTI0/2/3/4_IRQHandler`，把 `main.c` 末尾那四个删掉，避免重复定义；默认空工程不会有。
+7. 如果 CubeMX 生成了 `stm32f4xx_hal_timebase_tim.c`（Timebase Source 选成 TIM 时才有），从工程移除，避免 `HAL_InitTick` 重定义。
+8. Rebuild → Download → 按复位。
 
 > 用串口 ISP（CH340）烧录时，烧完把 BOOT0 接回 0，再按复位，否则 MCU 停在 bootloader，不跑用户程序。
 
