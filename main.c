@@ -32,7 +32,7 @@ void Error_Handler(void);
 /*============================ 2. 参数 ============================*/
 #define SLOT_US        10u      /* 1 个时隙 10 µs */
 #define LOOPS_PER_US   24u      /* 校准值：示波器 PA3 调到 1 kHz */
-#define DEBOUNCE_MS    30u
+#define DEBOUNCE_MS    50u       /* 消抖：两次有效边沿的最小间隔 */
 #define CLICK_MS       350u     /* 多击窗口 */
 #define KEY1_MS        2000u
 #define CD_MS          3000u
@@ -113,7 +113,7 @@ static void gpio_init(void)
     HAL_NVIC_SetPriority(EXTI2_IRQn, 3, 0); HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 }
 
-/* 30 ms 时间戳消抖：按住只有一个下降沿，所以天然不连跳 */
+/* 50 ms 时间戳消抖：按住只有一个下降沿，所以天然不连跳 */
 static void key_accept(volatile uint8_t *ev, uint32_t *last, uint8_t *seen)
 {
     uint32_t now = g_ms;
