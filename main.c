@@ -43,8 +43,9 @@ void Error_Handler(void);
 /*============================ 3. 状态 ============================*/
 static volatile uint32_t g_ms;
 static volatile uint8_t  ev0, ev1, ev2, ev_reset;
-static uint32_t last0, last1, last2;
-static uint8_t  seen0, seen1, seen2;
+static uint32_t last1, last2;
+static uint8_t  seen1, seen2;
+static uint8_t  key0_armed = 1, key0_high;   /* KEY0 必须松开才允许下一次 */
 
 static uint8_t  g_mode = 1;     /* 1~6 */
 static uint32_t t_mode, t_breath;
@@ -131,8 +132,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         key_accept(&ev2, &last2, &seen2);
     } else if (pin == GPIO_PIN_3) {          /* KEY1 */
         key_accept(&ev1, &last1, &seen1);
-    } else if (pin == GPIO_PIN_4) {          /* KEY0 */
-        key_accept(&ev0, &last0, &seen0);
+    } else if (pin == GPIO_PIN_4) {          /* KEY0：必须松开后才接受下一次 */
+        if (key0_armed) {
+            key0_armed = 0;
+            ev0 = 1;
+        }
     }
 }
 
@@ -266,6 +270,15 @@ static void task_1ms(void)
         return;
     }
 
+    /* KEY0 松开 30 ms 后才允许下一次，彻底防止按住/抖动跳档 */
+    if (!key0_armed) {
+        if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4) == GPIO_PIN_SET) {
+            if (++key0_high >= 30u) { key0_armed = 1; key0_high = 0; }
+        } else {
+            key0_high = 0;
+        }
+    }
+
     if (take(&ev0)) mode_set((uint8_t)((g_mode % 6) + 1));
 
     if (take(&ev1)) {
@@ -378,6 +391,7 @@ static void app_init(void)
     g_chirp_idx = 0; g_chirp_on = 0;
     g_flash = 0; g_flash_on = 0; t_flash = 0;
     g_pat = pat_a; g_pat_len = 5;
+    key0_armed = 1; key0_high = 0;
     g_wave = 50; d0 = d1 = dw = 0;
     gpio_init();
     __enable_irq();
